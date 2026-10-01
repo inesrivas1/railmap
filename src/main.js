@@ -7,12 +7,19 @@ setWorkerUrl(workerUrl)
 
 const map = new Map({
   container: 'map',
-  style: 'https://tiles.openfreemap.org/styles/liberty',
+  style: 'https://tiles.openfreemap.org/styles/positron',
   center: [-3.5, 54.5],
   zoom: 5,
 });
 
 map.on('load', () => {
+
+  for (const layer of map.getStyle().layers) {
+    if (layer.id.includes('rail'))
+      map.removeLayer(layer.id)
+  }
+
+
   map.addSource('stations', {
     type: 'geojson',
     data: '/data/StopsGB.geojson'

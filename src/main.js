@@ -25,6 +25,10 @@ map.on('load', () => {
     data: '/data/StopsGB.geojson'
   });
 
+  map.addSource('railways', {
+    type: 'geojson',
+    data: '/data/railways.geojson'
+  });
 
   map.addLayer({
     'id': 'stations',
@@ -38,6 +42,16 @@ map.on('load', () => {
       'all',
       ['==', ['get', 'Closing'], 'still open'],
     ]
+  });
+
+  map.addLayer({
+    'id': 'railways',
+    'type': 'line',
+    'source': 'railways',
+    'paint': {
+      'line-width': 1,
+      'line-color': '#020202'
+    },
   });
 });
 

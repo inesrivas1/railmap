@@ -5,9 +5,32 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 // Vite worker setup
 setWorkerUrl(workerUrl)
 
-new Map({
+const map = new Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/liberty',
   center: [-3.5, 54.5],
   zoom: 5,
-})
+});
+
+map.on('load', () => {
+  map.addSource('stations', {
+    type: 'geojson',
+    data: '/data/StopsGB.geojson'
+  });
+
+
+  map.addLayer({
+    'id': 'stations',
+    'type': 'circle',
+    'source': 'stations',
+    'paint': {
+      'circle-radius': 3,
+      'circle-color': '#cc1e1e'
+    },
+    'filter': [
+      'all',
+      ['==', ['get', 'Closing'], 'still open'],
+    ]
+  });
+});
+

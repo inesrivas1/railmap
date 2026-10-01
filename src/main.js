@@ -22,12 +22,14 @@ map.on('load', () => {
 
   map.addSource('stations', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`
+    data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`,
+    attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>'
   });
 
   map.addSource('railways', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/railways.geojson`
+    data: `${import.meta.env.BASE_URL}data/railways.geojson`,
+    attribution: '<a href=https://data.humdata.org/dataset/hotosm_gbr_railways>OpenStreetMap</a>'
   });
 
   map.addLayer({

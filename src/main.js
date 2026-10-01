@@ -22,12 +22,12 @@ map.on('load', () => {
 
   map.addSource('stations', {
     type: 'geojson',
-    data: '/data/StopsGB.geojson'
+    data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`
   });
 
   map.addSource('railways', {
     type: 'geojson',
-    data: '/data/railways.geojson'
+    data: `${import.meta.env.BASE_URL}data/railways.geojson`
   });
 
   map.addLayer({

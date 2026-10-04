@@ -60,11 +60,15 @@ map.on('load', () => {
     'paint': {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        5, 2,
-        10, 4,
-        15, 7
+        5, 3,
+        10, 8,
+        15, 15
       ],
-      'circle-color': '#1b4f9c'
+      'circle-color': '#1b4f9c',
+      'circle-opacity': 0.5,
+      'circle-stroke-color': '#1b4f9c',
+      'circle-stroke-width': 1,
+      'circle-stroke-opacity': 0.9
     },
 
   });

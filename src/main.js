@@ -1,4 +1,4 @@
-import {Map, setWorkerUrl } from 'maplibre-gl'
+import { Map, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -24,6 +24,9 @@ map.on('load', () => {
     type: 'geojson',
     data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`,
     attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
+    cluster: true,
+    clusterRadius: 10,
+    clusterMaxZoom: 0,
     filter: [
       'all',
       ['==', ['get', 'Closing'], 'still open'],
@@ -57,12 +60,13 @@ map.on('load', () => {
     'id': 'stations',
     'type': 'circle',
     'source': 'stations',
+    'filter': ['has', 'point_count'],
     'paint': {
       'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        5, 6,
-        10, 15,
-        15, 20
+        'step', ['get'], ['point_count'],
+        20, 10,
+        30, 20,
+        40, 30
       ],
       'circle-color': '#1b4f9c',
       'circle-opacity': 0.3,
@@ -77,8 +81,9 @@ map.on('load', () => {
     'id': 'station-count',
     'type': 'symbol',
     'source': 'stations',
+    'filter': ['has', 'point_count'],
     'layout': {
-      'text-field': '1',
+      'text-field': '{point_count_abbreviated}',
       'text-font': ['Bold'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
@@ -92,5 +97,26 @@ map.on('load', () => {
     }
   })
 
-});
+  map.addLayer({
+    'id': 'single-station',
+    'type': 'circle',
+    'source': 'stations',
+    'filter': ['!', ['has', 'point_count']],
+    'paint': {
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        5, 6,
+        10, 15,
+        15, 20
+      ],
+      'circle-color': '#1b4f9c',
+      'circle-opacity': 0.3,
+      'circle-stroke-color': '#1b4f9c',
+      'circle-stroke-width': 1,
+      'circle-stroke-opacity': 0.9
+    },
 
+
+  });
+
+})

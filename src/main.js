@@ -23,7 +23,12 @@ map.on('load', () => {
   map.addSource('stations', {
     type: 'geojson',
     data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`,
-    attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>'
+    attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
+    filter: [
+      'all',
+      ['==', ['get', 'Closing'], 'still open'],
+      ['==', ['get', 'ghost_entry'], 'False']
+    ]
   });
 
   map.addSource('railways', {
@@ -33,27 +38,36 @@ map.on('load', () => {
   });
 
   map.addLayer({
-    'id': 'stations',
-    'type': 'circle',
-    'source': 'stations',
-    'paint': {
-      'circle-radius': 3,
-      'circle-color': '#cc1e1e'
-    },
-    'filter': [
-      'all',
-      ['==', ['get', 'Closing'], 'still open'],
-    ]
-  });
-
-  map.addLayer({
     'id': 'railways',
     'type': 'line',
     'source': 'railways',
     'paint': {
-      'line-width': 1,
-      'line-color': '#020202'
+      'line-width': [
+        'interpolate', ['linear'], ['zoom'],
+        5, 0.5,
+        10, 2,
+        15, 7
+      ],
+      'line-color': '#4a4a4a',
+      'line-opacity': 0.7
     },
   });
+
+  map.addLayer({
+    'id': 'stations',
+    'type': 'circle',
+    'source': 'stations',
+    'paint': {
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        5, 2,
+        10, 4,
+        15, 7
+      ],
+      'circle-color': '#1b4f9c'
+    },
+
+  });
+
 });
 

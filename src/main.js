@@ -1,6 +1,7 @@
 import { Map, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.mjs';
 
 // Vite worker setup
 setWorkerUrl(workerUrl)
@@ -25,8 +26,8 @@ map.on('load', () => {
     data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`,
     attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
     cluster: true,
-    clusterRadius: 10,
-    clusterMaxZoom: 0,
+    clusterRadius: 30,
+    clusterMaxZoom: 11,
     filter: [
       'all',
       ['==', ['get', 'Closing'], 'still open'],
@@ -101,25 +102,47 @@ map.on('load', () => {
   })
 
   map.addLayer({
-    'id': 'station',
+    'id': 'unclustered-point',
     'type': 'circle',
     'source': 'stations',
     'filter': ['!', ['has', 'point_count']],
     'paint': {
-      'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        5, 6,
-        10, 15,
-        15, 20
-      ],
+      'circle-radius': 7,
       'circle-color': '#1b4f9c',
       'circle-opacity': 0.3,
       'circle-stroke-color': '#1b4f9c',
       'circle-stroke-width': 1,
       'circle-stroke-opacity': 0.9
     },
+  });
+
+  map.on('click', 'clusters', async (e) => {
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ['clusters']
+    });
+    const clusterId = features[0].properties.cluster_id;
+    const zoom = await map.getSource('stations').getClusterExpansionZoom(clusterId);
+    map.easeTo({
+      center: features[0].geometry.coordinates,
+      zoom
+    });
+  });
+
+  map.on('click', 'unclustered-point', (e) => {
+    const coordinates = e.features[0].geometry.coordinates.slice();
+    const station = e.features[0].properties.Station;
 
 
+    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    }
+
+    new maplibregl.Popup()
+      .setLngLat(coordinates)
+      .setHTML(
+        `station name: ${station}`
+      )
+      .addTo(map);
   });
 
 })

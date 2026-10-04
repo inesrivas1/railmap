@@ -57,16 +57,19 @@ map.on('load', () => {
   });
 
   map.addLayer({
-    'id': 'stations',
+    'id': 'clusters',
     'type': 'circle',
     'source': 'stations',
     'filter': ['has', 'point_count'],
     'paint': {
       'circle-radius': [
-        'step', ['get'], ['point_count'],
-        20, 10,
-        30, 20,
-        40, 30
+        'step', ['get', 'point_count'],
+        8,
+        2, 10,
+        3, 12,
+        4, 14,
+        5, 16,
+        10, 20
       ],
       'circle-color': '#1b4f9c',
       'circle-opacity': 0.3,
@@ -78,13 +81,13 @@ map.on('load', () => {
   });
 
   map.addLayer({
-    'id': 'station-count',
+    'id': 'cluster-count',
     'type': 'symbol',
     'source': 'stations',
     'filter': ['has', 'point_count'],
     'layout': {
       'text-field': '{point_count_abbreviated}',
-      'text-font': ['Bold'],
+      'text-font': ['Noto Sans Bold'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
         5, 8,
@@ -98,7 +101,7 @@ map.on('load', () => {
   })
 
   map.addLayer({
-    'id': 'single-station',
+    'id': 'station',
     'type': 'circle',
     'source': 'stations',
     'filter': ['!', ['has', 'point_count']],

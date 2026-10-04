@@ -1,7 +1,7 @@
-import { Map, setWorkerUrl } from 'maplibre-gl'
+import { Map, Popup, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.12.0/dist/maplibre-gl.mjs';
+import './style.css'
 
 // Vite worker setup
 setWorkerUrl(workerUrl)
@@ -14,12 +14,10 @@ const map = new Map({
 });
 
 map.on('load', () => {
-
   for (const layer of map.getStyle().layers) {
     if (layer.id.includes('rail'))
       map.removeLayer(layer.id)
   }
-
 
   map.addSource('stations', {
     type: 'geojson',
@@ -57,6 +55,7 @@ map.on('load', () => {
     },
   });
 
+  /**https://maplibre.org/maplibre-gl-js/docs/examples/create-and-style-clusters/ */
   map.addLayer({
     'id': 'clusters',
     'type': 'circle',
@@ -128,21 +127,40 @@ map.on('load', () => {
     });
   });
 
-  map.on('click', 'unclustered-point', (e) => {
-    const coordinates = e.features[0].geometry.coordinates.slice();
-    const station = e.features[0].properties.Station;
+  const popup = new Popup({
+    className: 'station-popup',
+    offset: 10,
+    closeButton: false,
+    closeOnClick: false
+  })
 
+  /**https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/ */
+  let currentFeatureCoordinates = undefined;
+  map.on('mousemove', 'unclustered-point', (e) => {
+    const featureCoordinates = e.features[0].geometry.coordinates.toString();
+    if (currentFeatureCoordinates !== featureCoordinates) {
+      currentFeatureCoordinates = featureCoordinates;
 
-    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-      coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      map.getCanvas().style.cursor = 'pointer';
+
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      const station = e.features[0].properties.Station;
+      const description = `station name: ${station}`
+
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      popup.setLngLat(coordinates).setHTML(description).addTo(map);
     }
-
-    new maplibregl.Popup()
-      .setLngLat(coordinates)
-      .setHTML(
-        `station name: ${station}`
-      )
-      .addTo(map);
   });
+
+
+  map.on('mouseleave', 'unclustered-point', () => {
+    currentFeatureCoordinates  = undefined;
+    map.getCanvas().style.cursor = '';
+    popup.remove();
+  });
+
 
 })

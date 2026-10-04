@@ -1,4 +1,4 @@
-import { interpolates, Map, setWorkerUrl } from 'maplibre-gl'
+import {Map, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -60,12 +60,12 @@ map.on('load', () => {
     'paint': {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
-        5, 5,
-        10, 10,
-        15, 15
+        5, 6,
+        10, 15,
+        15, 20
       ],
       'circle-color': '#1b4f9c',
-      'circle-opacity': 0.5,
+      'circle-opacity': 0.3,
       'circle-stroke-color': '#1b4f9c',
       'circle-stroke-width': 1,
       'circle-stroke-opacity': 0.9
@@ -79,15 +79,16 @@ map.on('load', () => {
     'source': 'stations',
     'layout': {
       'text-field': '1',
+      'text-font': ['Bold'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
-        5, 3,
-        10, 8,
-        15, 12
+        5, 8,
+        10, 15,
+        15, 20
       ],
     },
     'paint': {
-      'text-color': '#da2c0d'
+      'text-color': '#1b4f9c'
     }
   })
 

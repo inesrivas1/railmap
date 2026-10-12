@@ -1,6 +1,16 @@
+html, body {
+    margin: 0;
+}
+
+
 .station-popup .maplibregl-popup-content{
     padding: 10px;
     border-radius: 8px;
-    color: 4px solid #1b4f9c
+    border: 2px solid #1b4f9c;
+    color: #1b4f9c
+}
+
+.station-popup .station-name {
+    text-transform: capitalize;
 }
 

@@ -19,30 +19,30 @@ map.on('load', () => {
       map.removeLayer(layer.id)
   }
 
-  map.addSource('stations', {
+  map.addSource('graph-stations', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/StopsGB.geojson`,
+    data: `${import.meta.env.BASE_URL}data/graph-stations.geojson`,
     attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
     cluster: true,
     clusterRadius: 30,
     clusterMaxZoom: 11,
-    filter: [
-      'all',
-      ['==', ['get', 'Closing'], 'still open'],
-      ['==', ['get', 'ghost_entry'], 'False']
-    ]
   });
 
-  map.addSource('railways', {
+  map.addSource('graph-edges', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/railways.geojson`,
+    data: `${import.meta.env.BASE_URL}data/graph-edges.geojson`,
     attribution: '<a href=https://data.humdata.org/dataset/hotosm_gbr_railways>OpenStreetMap</a>'
   });
+
+  map.addSource('graph-nodes', {
+    type: 'geojson',
+    data: `${import.meta.env.BASE_URL}data/graph-nodes.geojson`
+  }),
 
   map.addLayer({
     'id': 'railways',
     'type': 'line',
-    'source': 'railways',
+    'source': 'graph-edges',
     'paint': {
       'line-width': [
         'interpolate', ['linear'], ['zoom'],
@@ -59,7 +59,7 @@ map.on('load', () => {
   map.addLayer({
     'id': 'clusters',
     'type': 'circle',
-    'source': 'stations',
+    'source': 'graph-stations',
     'filter': ['has', 'point_count'],
     'paint': {
       'circle-radius': [
@@ -83,7 +83,7 @@ map.on('load', () => {
   map.addLayer({
     'id': 'cluster-count',
     'type': 'symbol',
-    'source': 'stations',
+    'source': 'graph-stations',
     'filter': ['has', 'point_count'],
     'layout': {
       'text-field': '{point_count_abbreviated}',
@@ -103,7 +103,7 @@ map.on('load', () => {
   map.addLayer({
     'id': 'unclustered-point',
     'type': 'circle',
-    'source': 'stations',
+    'source': 'graph-stations',
     'filter': ['!', ['has', 'point_count']],
     'paint': {
       'circle-radius': 7,
@@ -120,7 +120,7 @@ map.on('load', () => {
       layers: ['clusters']
     });
     const clusterId = features[0].properties.cluster_id;
-    const zoom = await map.getSource('stations').getClusterExpansionZoom(clusterId);
+    const zoom = await map.getSource('graph-stations').getClusterExpansionZoom(clusterId);
     map.easeTo({
       center: features[0].geometry.coordinates,
       zoom

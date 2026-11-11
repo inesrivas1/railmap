@@ -12,6 +12,11 @@ npm run dev
 https://inesrivas1.github.io/railmap/
 
 
+## Nodes
+python3 -m venv .venv
+source .venv/bin/activate
+pip install geopandas momepy networkx matplotlib jupyter
+
 ## Data Sources
 - Mariona Coll Ardanuy, Kaspar Beelen, Jon Lawrence, Katherine McDonough, Federico Nanni, Joshua Rhodes, Giorgia Tolfo, and Daniel C.S. Wilson. 2021. StopsGB: Structured Timeline of Passenger Stations in Great Britain. Dataset. British Library, London, UK. https://doi.org/10.23636/wvva-3d67
 

@@ -18,7 +18,7 @@ const map = new Map({
   maxBounds: [[-26, 45], [19, 65]]
 });
 
-map.addControl(new NavigationControl({showCompass : false}));
+map.addControl(new NavigationControl({ showCompass: false }));
 map.addControl(new ScaleControl({ unit: 'metric' }))
 
 
@@ -40,7 +40,7 @@ map.on('load', () => {
   map.addSource('graph-edges', {
     type: 'geojson',
     data: `${import.meta.env.BASE_URL}data/graph-edges.geojson`,
-    attribution: '<a href=https://data.humdata.org/dataset/hotosm_gbr_railways>OpenStreetMap</a>'
+    attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
 
   map.addSource('graph-nodes', {
@@ -131,7 +131,7 @@ map.on('load', () => {
       layers: ['clusters']
     });
     const clusterId = features[0].properties.cluster_id;
-    const zoom = await map.getSource('stations').getClusterExpansionZoom(clusterId);
+    const zoom = await map.getSource('graph-stations').getClusterExpansionZoom(clusterId);
     map.easeTo({
       center: features[0].geometry.coordinates,
       zoom

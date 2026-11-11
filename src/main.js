@@ -1,7 +1,10 @@
-import { Map, Popup, setWorkerUrl } from 'maplibre-gl'
+import { Map, Popup, NavigationControl, ScaleControl, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './style.css'
+
+const STATION_RADIUS_MIN = 5;
+const STATION_RADIUS_MAX = 7;
 
 // Vite worker setup
 setWorkerUrl(workerUrl)
@@ -9,9 +12,15 @@ setWorkerUrl(workerUrl)
 const map = new Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/positron',
-  center: [-3.5, 54.5],
+  center: [-3.5, 55.8],
   zoom: 5,
+  minZoom: 4.8,
+  maxBounds: [[-26, 45], [19, 65]]
 });
+
+map.addControl(new NavigationControl({showCompass : false}));
+map.addControl(new ScaleControl({ unit: 'metric' }))
+
 
 map.on('load', () => {
   for (const layer of map.getStyle().layers) {
@@ -24,7 +33,7 @@ map.on('load', () => {
     data: `${import.meta.env.BASE_URL}data/graph-stations.geojson`,
     attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
     cluster: true,
-    clusterRadius: 30,
+    clusterRadius: 14,
     clusterMaxZoom: 11,
   });
 
@@ -37,7 +46,7 @@ map.on('load', () => {
   map.addSource('graph-nodes', {
     type: 'geojson',
     data: `${import.meta.env.BASE_URL}data/graph-nodes.geojson`
-  }),
+  });
 
   map.addLayer({
     'id': 'railways',
@@ -50,12 +59,12 @@ map.on('load', () => {
         10, 2,
         15, 7
       ],
-      'line-color': '#4a4a4a',
-      'line-opacity': 0.7
+      'line-color': '#2b2b2b',
+      'line-opacity': 0.9
     },
   });
 
-  /**https://maplibre.org/maplibre-gl-js/docs/examples/create-and-style-clusters/ */
+  /** Layer of point clusters: https://maplibre.org/maplibre-gl-js/docs/examples/create-and-style-clusters/ */
   map.addLayer({
     'id': 'clusters',
     'type': 'circle',
@@ -63,13 +72,9 @@ map.on('load', () => {
     'filter': ['has', 'point_count'],
     'paint': {
       'circle-radius': [
-        'step', ['get', 'point_count'],
-        8,
-        2, 10,
-        3, 12,
-        4, 14,
-        5, 16,
-        10, 20
+        'interpolate', ['linear'], ['zoom'],
+        5, ['*', STATION_RADIUS_MIN, ['^', ['get', 'point_count'], 0.4]],
+        11, ['*', STATION_RADIUS_MAX, ['^', ['get', 'point_count'], 0.4]]
       ],
       'circle-color': '#1b4f9c',
       'circle-opacity': 0.3,
@@ -80,6 +85,7 @@ map.on('load', () => {
 
   });
 
+  /** Layer that helps display cluster count */
   map.addLayer({
     'id': 'cluster-count',
     'type': 'symbol',
@@ -90,23 +96,28 @@ map.on('load', () => {
       'text-font': ['Noto Sans Bold'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
-        5, 8,
+        5, 10,
         10, 15,
         15, 20
       ],
     },
     'paint': {
-      'text-color': '#1b4f9c'
+      'text-color': '#1b4f9c',
     }
   })
 
+  /** Layer to display single stations */
   map.addLayer({
     'id': 'unclustered-point',
     'type': 'circle',
     'source': 'graph-stations',
     'filter': ['!', ['has', 'point_count']],
     'paint': {
-      'circle-radius': 7,
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        5, STATION_RADIUS_MIN,
+        11, STATION_RADIUS_MAX
+      ],
       'circle-color': '#1b4f9c',
       'circle-opacity': 0.3,
       'circle-stroke-color': '#1b4f9c',
@@ -120,7 +131,7 @@ map.on('load', () => {
       layers: ['clusters']
     });
     const clusterId = features[0].properties.cluster_id;
-    const zoom = await map.getSource('graph-stations').getClusterExpansionZoom(clusterId);
+    const zoom = await map.getSource('stations').getClusterExpansionZoom(clusterId);
     map.easeTo({
       center: features[0].geometry.coordinates,
       zoom
@@ -144,8 +155,8 @@ map.on('load', () => {
       map.getCanvas().style.cursor = 'pointer';
 
       const coordinates = e.features[0].geometry.coordinates.slice();
-      const station = e.features[0].properties.Station;
-      const description = `station name: ${station}`
+      const station = e.features[0].properties.Station.toLowerCase();
+      const description = `<span class="station-name">${station}</span>`
 
       while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
@@ -157,7 +168,7 @@ map.on('load', () => {
 
 
   map.on('mouseleave', 'unclustered-point', () => {
-    currentFeatureCoordinates  = undefined;
+    currentFeatureCoordinates = undefined;
     map.getCanvas().style.cursor = '';
     popup.remove();
   });

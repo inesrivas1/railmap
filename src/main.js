@@ -23,6 +23,8 @@ map.addControl(new ScaleControl({ unit: 'metric' }))
 
 
 map.on('load', () => {
+
+  // Hide prexising layers of rail that come with the map
   for (const layer of map.getStyle().layers) {
     if (layer.id.includes('rail'))
       map.removeLayer(layer.id)
@@ -43,9 +45,9 @@ map.on('load', () => {
     attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
 
-  map.addSource('graph-nodes', {
+  map.addSource('track-stations', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/graph-nodes.geojson`
+    data: `${import.meta.env.BASE_URL}data/graph-stations.geojson`
   });
 
   map.addLayer({
@@ -82,8 +84,9 @@ map.on('load', () => {
       'circle-stroke-width': 1,
       'circle-stroke-opacity': 0.9
     },
-
   });
+
+
 
   /** Layer that helps display cluster count */
   map.addLayer({
@@ -104,7 +107,7 @@ map.on('load', () => {
     'paint': {
       'text-color': '#1b4f9c',
     }
-  })
+  });
 
   /** Layer to display single stations */
   map.addLayer({
@@ -112,6 +115,25 @@ map.on('load', () => {
     'type': 'circle',
     'source': 'graph-stations',
     'filter': ['!', ['has', 'point_count']],
+    'paint': {
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        5, STATION_RADIUS_MIN,
+        11, STATION_RADIUS_MAX
+      ],
+      'circle-color': '#1b4f9c',
+      'circle-opacity': 0.3,
+      'circle-stroke-color': '#1b4f9c',
+      'circle-stroke-width': 1,
+      'circle-stroke-opacity': 0.9
+    },
+  });
+
+  map.addLayer({
+    'id': 'track-unclustered-point',
+    'type': 'circle',
+    'source': 'track-stations',
+    'layout': { 'visibility': 'none' },
     'paint': {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
@@ -147,6 +169,7 @@ map.on('load', () => {
 
   /**https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-hover/ */
   let currentFeatureCoordinates = undefined;
+
   map.on('mousemove', 'unclustered-point', (e) => {
     const featureCoordinates = e.features[0].geometry.coordinates.toString();
     if (currentFeatureCoordinates !== featureCoordinates) {
@@ -173,5 +196,18 @@ map.on('load', () => {
     popup.remove();
   });
 
+  document.getElementById('geo-button').addEventListener('click', () => {
+    map.setLayoutProperty('clusters', 'visibility', 'visible');
+    map.setLayoutProperty('cluster-count', 'visibility', 'visible');
+    map.setLayoutProperty('unclustered-point', 'visibility', 'visible');
+    map.setLayoutProperty('track-unclustered-point', 'visibility', 'none');
+  });
+
+  document.getElementById('track-button').addEventListener('click', () => {
+    map.setLayoutProperty('clusters', 'visibility', 'none');
+    map.setLayoutProperty('cluster-count', 'visibility', 'none');
+    map.setLayoutProperty('unclustered-point', 'visibility', 'none');
+    map.setLayoutProperty('track-unclustered-point', 'visibility', 'visible');
+  });
 
 })

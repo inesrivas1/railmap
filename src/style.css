@@ -14,3 +14,23 @@ html, body {
     text-transform: capitalize;
 }
 
+#buttons {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    display: flex;
+    gap: 8px;
+}
+
+#buttons button {
+    height: 40px;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    text-align: center;
+    color: #fff;
+    background: #1b4f9c;
+    cursor: pointer;
+}

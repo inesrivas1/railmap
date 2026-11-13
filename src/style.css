@@ -14,6 +14,12 @@ html, body {
     text-transform: capitalize;
 }
 
+.station-popup .station-details {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #444;
+}
+
 #buttons {
     position: absolute;
     top: 10px;

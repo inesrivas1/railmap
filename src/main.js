@@ -22,7 +22,7 @@ map.addControl(new NavigationControl({ showCompass: false }));
 map.addControl(new ScaleControl({ unit: 'metric' }))
 
 
-map.on('load', () => {
+map.on('load', async () => {
 
   // Hide prexising layers of rail that come with the map
   for (const layer of map.getStyle().layers) {
@@ -30,9 +30,12 @@ map.on('load', () => {
       map.removeLayer(layer.id)
   }
 
+  const response = await fetch(`${import.meta.env.BASE_URL}data/graph-stations.geojson`);
+  const stationsGeojson = await response.json();
+
   map.addSource('graph-stations', {
     type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/graph-stations.geojson`,
+    data: stationsGeojson,
     attribution: '<a href=https://bl.iro.bl.uk/entities/product/56ff09f0-db5b-4ca9-8389-cfa362d5f46b>StopsGB</a>',
     cluster: true,
     clusterRadius: 14,
@@ -43,11 +46,6 @@ map.on('load', () => {
     type: 'geojson',
     data: `${import.meta.env.BASE_URL}data/graph-edges.geojson`,
     attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  });
-
-  map.addSource('track-stations', {
-    type: 'geojson',
-    data: `${import.meta.env.BASE_URL}data/graph-stations.geojson`
   });
 
   map.addLayer({
@@ -129,25 +127,6 @@ map.on('load', () => {
     },
   });
 
-  map.addLayer({
-    'id': 'track-unclustered-point',
-    'type': 'circle',
-    'source': 'track-stations',
-    'layout': { 'visibility': 'none' },
-    'paint': {
-      'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        5, STATION_RADIUS_MIN,
-        11, STATION_RADIUS_MAX
-      ],
-      'circle-color': '#1b4f9c',
-      'circle-opacity': 0.3,
-      'circle-stroke-color': '#1b4f9c',
-      'circle-stroke-width': 1,
-      'circle-stroke-opacity': 0.9
-    },
-  });
-
   map.on('click', 'clusters', async (e) => {
     const features = map.queryRenderedFeatures(e.point, {
       layers: ['clusters']
@@ -178,8 +157,13 @@ map.on('load', () => {
       map.getCanvas().style.cursor = 'pointer';
 
       const coordinates = e.features[0].geometry.coordinates.slice();
-      const station = e.features[0].properties.Station.toLowerCase();
-      const description = `<span class="station-name">${station}</span>`
+      const properties = e.features[0].properties;
+      const description = `
+        <span class="station-name">${properties.Station.toLowerCase()}</span>
+        <div class="station-details">
+          Opened: ${properties.Opening}<br>
+          Track: ${properties.track_name ?? 'unnamed'}<br>
+        </div>`;
 
       while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
@@ -196,18 +180,14 @@ map.on('load', () => {
     popup.remove();
   });
 
-  document.getElementById('geo-button').addEventListener('click', () => {
-    map.setLayoutProperty('clusters', 'visibility', 'visible');
-    map.setLayoutProperty('cluster-count', 'visibility', 'visible');
-    map.setLayoutProperty('unclustered-point', 'visibility', 'visible');
-    map.setLayoutProperty('track-unclustered-point', 'visibility', 'none');
+  document.getElementById('geo-button').addEventListener('click', async () => {
+    await map.getSource('graph-stations').setClusterOptions({ cluster: true });
+    map.getSource('graph-stations').setData(stationsGeojson);
   });
 
-  document.getElementById('track-button').addEventListener('click', () => {
-    map.setLayoutProperty('clusters', 'visibility', 'none');
-    map.setLayoutProperty('cluster-count', 'visibility', 'none');
-    map.setLayoutProperty('unclustered-point', 'visibility', 'none');
-    map.setLayoutProperty('track-unclustered-point', 'visibility', 'visible');
+  document.getElementById('track-button').addEventListener('click', async () => {
+    await map.getSource('graph-stations').setClusterOptions({ cluster: false });
+    map.getSource('graph-stations').setData(stationsGeojson);
   });
 
 })

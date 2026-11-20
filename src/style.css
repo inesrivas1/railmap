@@ -46,6 +46,40 @@ html, body {
     left: 10px;
     top: 175px;
     z-index: 1;
+    width: 224px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+}
+
+#search-box {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 2px solid #1b4f9c;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+#search-results {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+#search-results li {
+    border: 1px solid #ddd;
+    margin-top: -1px;
+    background-color: #f6f6f6;
+    padding: 8px;
+    color: #1b4f9c;
+    text-transform: capitalize;
+    cursor: pointer;
+}
+
+#search-results li:hover {
+    background-color: #eee;
 }
 
 #distance-box {

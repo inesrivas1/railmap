@@ -224,6 +224,12 @@ map.on('load', async () => {
   });
 
 
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                     DISTANCE DISPLAY
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+
   const distancesResponse = await fetch(`${import.meta.env.BASE_URL}data/track-distances.json`);
   const distances = await distancesResponse.json();
 
@@ -281,6 +287,11 @@ map.on('load', async () => {
     }
   });
 
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                     BUTTONS
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
 
   document.getElementById('geo-button').addEventListener('click', async () => {
     await map.getSource('graph-stations').setClusterOptions({ cluster: true });
@@ -292,4 +303,52 @@ map.on('load', async () => {
     map.getSource('graph-stations').setData(stationsGeojson);
   });
 
+
+
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                     SEARCH BOX
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+
+  const searchBox = document.getElementById('search-box');
+  const searchResults = document.getElementById('search-results');
+
+  // https://www.w3schools.com/howto/howto_js_filter_lists.asp
+  function filterStations() {
+    const filter = searchBox.value.toUpperCase();
+    const items = searchResults.getElementsByTagName('li');
+
+    for (let i = 0; i < items.length; i++) {
+      const txtValue = items[i].textContent;
+      if (filter !== '' && txtValue.toUpperCase().indexOf(filter) > -1) {
+        items[i].style.display = '';
+      } else {
+        items[i].style.display = 'none';
+      }
+    }
+  }
+
+  // Add one list item per station, hidden until the user types
+  for (const feature of stationsGeojson.features) {
+    const item = document.createElement('li');
+    item.textContent = feature.properties.Station.toLowerCase();
+    item.style.display = 'none';
+
+    // https://maplibre.org/maplibre-gl-js/docs/examples/fly-to-a-location/
+    item.addEventListener('click', function () {
+      map.flyTo({
+        center: feature.geometry.coordinates,
+        zoom: 12
+      });
+      searchBox.value = '';
+      filterStations();
+    });
+
+    searchResults.appendChild(item);
+  }
+
+  searchBox.addEventListener('keyup', filterStations);
+
 })
+

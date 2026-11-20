@@ -2,6 +2,7 @@ import { Map, Popup, NavigationControl, ScaleControl, setWorkerUrl } from 'mapli
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './style.css'
+import { geoDistance, trackDistance } from './route.js'
 
 const STATION_RADIUS_MIN = 5;
 const STATION_RADIUS_MAX = 7;
@@ -179,6 +180,70 @@ map.on('load', async () => {
     map.getCanvas().style.cursor = '';
     popup.remove();
   });
+
+
+  const distancesResponse = await fetch(`${import.meta.env.BASE_URL}data/track-distances.json`);
+  const distances = await distancesResponse.json();
+
+  const positions = {};
+  for (const feature of stationsGeojson.features) {
+    positions[feature.properties.StationId] = feature.geometry.coordinates;
+  }
+
+  map.addSource('route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+
+  map.addLayer({
+    'id': 'route',
+    'type': 'line',
+    'source': 'route',
+    'paint': {
+      'line-color': '#e8590c',
+      'line-width': 5,
+      'line-opacity': 0.8
+    }
+  }, 'clusters');
+
+  let picked = [];
+
+  map.on('click', 'unclustered-point', (e) => {
+    const section = document.getElementById('distance-box');
+    const station = e.features[0];
+
+    picked.push(station);
+    if (picked.length > 2) {
+      picked = [station];
+    }
+
+    const firstName = picked[0].properties.Station.toLowerCase();
+
+    if (picked.length === 1) {
+      section.textContent = `From: ${firstName}\nTo:\nGeographic distance:\nTrack distance:`;
+      map.getSource('route').setData({ type: 'FeatureCollection', features: [] });
+    }
+
+    if (picked.length === 2) {
+      const secondName = picked[1].properties.Station.toLowerCase();
+      const geographic = geoDistance(picked[0].geometry.coordinates, picked[1].geometry.coordinates);
+
+      const start = String(picked[0].properties.StationId);
+      const end = String(picked[1].properties.StationId);
+      const track = trackDistance(distances, start, end);
+
+      let trackText = 'no rail route';
+      if (track !== null) {
+        trackText = `${(track.distance / 1000).toFixed(1)} km`;
+
+        const coordinates = [];
+        for (const stationId of track.route) {
+          coordinates.push(positions[stationId]);
+        }
+        map.getSource('route').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates } });
+      }
+
+      section.textContent = `From: ${firstName}\nTo: ${secondName}\nGeographic distance: ${geographic.toFixed(1)} km\nTrack distance: ${trackText}`;
+    }
+  });
+
 
   document.getElementById('geo-button').addEventListener('click', async () => {
     await map.getSource('graph-stations').setClusterOptions({ cluster: true });

@@ -40,3 +40,19 @@ html, body {
     background: #1b4f9c;
     cursor: pointer;
 }
+
+
+#distance-box {
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    z-index: 1;
+    padding: 10px;
+    background: #fff;
+    border-radius: 1px;
+    color: #1b4f9c;
+    font-size: 13px;
+    font-family:Arial, Helvetica, sans-serif;
+    white-space: pre-line;
+    text-transform: capitalize;
+}

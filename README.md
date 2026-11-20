@@ -14,7 +14,7 @@ https://inesrivas1.github.io/railmap/
 
 ## Nodes
 python3 -m venv .venv
-source .venv/bin/activate
+source ~/.venvs/railmap/bin/activate
 pip install geopandas momepy networkx matplotlib jupyter
 
 ## Data Sources

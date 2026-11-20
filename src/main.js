@@ -34,6 +34,14 @@ map.on('load', async () => {
   const response = await fetch(`${import.meta.env.BASE_URL}data/graph-stations.geojson`);
   const stationsGeojson = await response.json();
 
+
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                          SOURCES 
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+
+
   map.addSource('graph-stations', {
     type: 'geojson',
     data: stationsGeojson,
@@ -49,6 +57,20 @@ map.on('load', async () => {
     attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   });
 
+  map.addSource('route', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: []
+    }
+  });
+
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                          LAYERS 
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+
   map.addLayer({
     'id': 'railways',
     'type': 'line',
@@ -63,6 +85,18 @@ map.on('load', async () => {
       'line-color': '#2b2b2b',
       'line-opacity': 0.9
     },
+  });
+
+  /** Layer for the track route between two stations */
+  map.addLayer({
+    'id': 'route',
+    'type': 'line',
+    'source': 'route',
+    'paint': {
+      'line-color': '#e8590c',
+      'line-width': 5,
+      'line-opacity': 0.8
+    }
   });
 
   /** Layer of point clusters: https://maplibre.org/maplibre-gl-js/docs/examples/create-and-style-clusters/ */
@@ -128,6 +162,14 @@ map.on('load', async () => {
     },
   });
 
+
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+  //                                     INTERACTIVITY
+  // ------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
+
+
   map.on('click', 'clusters', async (e) => {
     const features = map.queryRenderedFeatures(e.point, {
       layers: ['clusters']
@@ -190,23 +232,13 @@ map.on('load', async () => {
     positions[feature.properties.StationId] = feature.geometry.coordinates;
   }
 
-  map.addSource('route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-
-  map.addLayer({
-    'id': 'route',
-    'type': 'line',
-    'source': 'route',
-    'paint': {
-      'line-color': '#e8590c',
-      'line-width': 5,
-      'line-opacity': 0.8
-    }
-  }, 'clusters');
-
   let picked = [];
 
   map.on('click', 'unclustered-point', (e) => {
-    const section = document.getElementById('distance-box');
+    const fromBox = document.getElementById('from');
+    const toBox = document.getElementById('to');
+    const geoBox = document.getElementById('geographic');
+    const trackBox = document.getElementById('track');
     const station = e.features[0];
 
     picked.push(station);
@@ -217,12 +249,16 @@ map.on('load', async () => {
     const firstName = picked[0].properties.Station.toLowerCase();
 
     if (picked.length === 1) {
-      section.textContent = `From: ${firstName}\nTo:\nGeographic distance:\nTrack distance:`;
+      fromBox.textContent = firstName;
+      toBox.textContent = '';
+      geoBox.textContent = '';
+      trackBox.textContent = '';
       map.getSource('route').setData({ type: 'FeatureCollection', features: [] });
     }
 
     if (picked.length === 2) {
       const secondName = picked[1].properties.Station.toLowerCase();
+      toBox.textContent = secondName;
       const geographic = geoDistance(picked[0].geometry.coordinates, picked[1].geometry.coordinates);
 
       const start = String(picked[0].properties.StationId);
@@ -240,7 +276,8 @@ map.on('load', async () => {
         map.getSource('route').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates } });
       }
 
-      section.textContent = `From: ${firstName}\nTo: ${secondName}\nGeographic distance: ${geographic.toFixed(1)} km\nTrack distance: ${trackText}`;
+      geoBox.textContent = `${geographic.toFixed(1)} km`;
+      trackBox.textContent = trackText;
     }
   });
 

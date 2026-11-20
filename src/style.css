@@ -41,6 +41,12 @@ html, body {
     cursor: pointer;
 }
 
+#search {
+    position: absolute;
+    left: 10px;
+    top: 175px;
+    z-index: 1;
+}
 
 #distance-box {
     position: absolute;
@@ -49,10 +55,23 @@ html, body {
     z-index: 1;
     padding: 10px;
     background: #fff;
-    border-radius: 1px;
+    border-radius: 5px;
+    border: 2px solid #1b4f9c;
     color: #1b4f9c;
     font-size: 13px;
-    font-family:Arial, Helvetica, sans-serif;
-    white-space: pre-line;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 200px;
+}
+
+#distance-box p {
+    margin: 4px 0;
+}
+
+#distance-box span {
+    font-weight: bold;
+}
+
+#from,
+#to {
     text-transform: capitalize;
 }
